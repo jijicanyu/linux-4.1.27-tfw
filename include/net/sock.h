@@ -852,9 +852,14 @@ static inline int sk_backlog_rcv(struct sock *sk, struct sk_buff *skb)
 	return sk->sk_backlog_rcv(sk, skb);
 }
 
+#define TFW_SK_CPU_INIT	USHRT_MAX
+
 static inline void sk_incoming_cpu_update(struct sock *sk)
 {
-	sk->sk_incoming_cpu = raw_smp_processor_id();
+#ifdef CONFIG_SECURITY_TEMPESTA
+	if (sk->sk_incoming_cpu == TFW_SK_CPU_INIT)
+#endif
+		sk->sk_incoming_cpu = raw_smp_processor_id();
 }
 
 static inline void sock_rps_record_flow_hash(__u32 hash)
@@ -1700,8 +1705,7 @@ unsigned long sock_i_ino(struct sock *sk);
 static inline struct dst_entry *
 __sk_dst_get(struct sock *sk)
 {
-	return rcu_dereference_check(sk->sk_dst_cache, sock_owned_by_user(sk) ||
-						       lockdep_is_held(&sk->sk_lock.slock));
+	return rcu_dereference_raw(sk->sk_dst_cache);
 }
 
 static inline struct dst_entry *

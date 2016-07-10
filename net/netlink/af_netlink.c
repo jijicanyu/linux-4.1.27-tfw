@@ -2368,7 +2368,6 @@ static int netlink_sendmsg(struct socket *sock, struct msghdr *msg, size_t len)
 	 * sendmsg(), but that's what we've got...
 	 */
 	if (netlink_tx_is_mmaped(sk) &&
-	    msg->msg_iter.type == ITER_IOVEC &&
 	    msg->msg_iter.nr_segs == 1 &&
 	    msg->msg_iter.iov->iov_base == NULL) {
 		err = netlink_mmap_sendmsg(sk, msg, dst_portid, dst_group,
@@ -2729,8 +2728,13 @@ static int netlink_dump(struct sock *sk)
 	 * dump to use the excess space makes it difficult for a user to have a
 	 * reasonable static buffer based on the expected largest dump of a
 	 * single netdev. The outcome is MSG_TRUNC error.
+	 *
+	 * NETLINK_MMAP expects the same address offsets in kernel and user
+	 * spaces, so don't move skb data pointers for mmaped sockets.
 	 */
-	skb_reserve(skb, skb_tailroom(skb) - alloc_size);
+	if (!netlink_rx_is_mmaped(sk))
+		skb_reserve(skb, skb_tailroom(skb) - alloc_size);
+
 	netlink_skb_set_owner_r(skb, sk);
 
 	len = cb->dump(skb, cb);

@@ -423,6 +423,7 @@ void raise_softirq(unsigned int nr)
 	raise_softirq_irqoff(nr);
 	local_irq_restore(flags);
 }
+EXPORT_SYMBOL(raise_softirq);
 
 void __raise_softirq_irqoff(unsigned int nr)
 {

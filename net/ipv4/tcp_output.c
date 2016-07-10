@@ -391,7 +391,7 @@ static void tcp_ecn_send(struct sock *sk, struct sk_buff *skb,
 /* Constructs common control bits of non-data skb. If SYN/FIN is present,
  * auto increment end seqno.
  */
-static void tcp_init_nondata_skb(struct sk_buff *skb, u32 seq, u8 flags)
+void tcp_init_nondata_skb(struct sk_buff *skb, u32 seq, u8 flags)
 {
 	struct skb_shared_info *shinfo = skb_shinfo(skb);
 
@@ -410,6 +410,7 @@ static void tcp_init_nondata_skb(struct sk_buff *skb, u32 seq, u8 flags)
 		seq++;
 	TCP_SKB_CB(skb)->end_seq = seq;
 }
+EXPORT_SYMBOL(tcp_init_nondata_skb);
 
 static inline bool tcp_urg_mode(const struct tcp_sock *tp)
 {
@@ -1043,7 +1044,7 @@ static int tcp_transmit_skb(struct sock *sk, struct sk_buff *skb, int clone_it,
  * NOTE: probe0 timer is not checked, do not forget tcp_push_pending_frames,
  * otherwise socket can stall.
  */
-static void tcp_queue_skb(struct sock *sk, struct sk_buff *skb)
+void tcp_queue_skb(struct sock *sk, struct sk_buff *skb)
 {
 	struct tcp_sock *tp = tcp_sk(sk);
 
@@ -1054,6 +1055,7 @@ static void tcp_queue_skb(struct sock *sk, struct sk_buff *skb)
 	sk->sk_wmem_queued += skb->truesize;
 	sk_mem_charge(sk, skb->truesize);
 }
+EXPORT_SYMBOL(tcp_queue_skb);
 
 /* Initialize TSO segments for a packet. */
 static void tcp_set_skb_tso_segs(const struct sock *sk, struct sk_buff *skb,
@@ -1449,6 +1451,7 @@ unsigned int tcp_current_mss(struct sock *sk)
 
 	return mss_now;
 }
+EXPORT_SYMBOL(tcp_current_mss);
 
 /* RFC2861, slow part. Adjust cwnd, after it was not full during one rto.
  * As additional protections, we do not touch cwnd in retransmission phases,
@@ -2305,6 +2308,7 @@ void __tcp_push_pending_frames(struct sock *sk, unsigned int cur_mss,
 			   sk_gfp_atomic(sk, GFP_ATOMIC)))
 		tcp_check_probe_timer(sk);
 }
+EXPORT_SYMBOL(__tcp_push_pending_frames);
 
 /* Send _single_ skb sitting at the send head. This function requires
  * true push pending frames to setup probe timer etc.
@@ -2900,6 +2904,7 @@ void tcp_send_active_reset(struct sock *sk, gfp_t priority)
 
 	TCP_INC_STATS(sock_net(sk), TCP_MIB_OUTRSTS);
 }
+EXPORT_SYMBOL(tcp_send_active_reset);
 
 /* Send a crossed SYN-ACK during socket establishment.
  * WARNING: This routine must only be called when we have already sent

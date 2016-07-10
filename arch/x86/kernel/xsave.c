@@ -565,7 +565,7 @@ static void __init setup_init_fpu_buf(void)
 	xsave_state_booting(init_xstate_buf, -1);
 }
 
-static enum { AUTO, ENABLE, DISABLE } eagerfpu = AUTO;
+static enum { AUTO, ENABLE, DISABLE } eagerfpu = ENABLE;
 static int __init eager_fpu_setup(char *s)
 {
 	if (!strcmp(s, "on"))

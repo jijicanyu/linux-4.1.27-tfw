@@ -340,6 +340,7 @@ static inline bool tcp_synq_no_recent_overflow(const struct sock *sk)
 }
 
 extern struct proto tcp_prot;
+extern struct proto tcpv6_prot;
 
 #define TCP_INC_STATS(net, field)	SNMP_INC_STATS((net)->mib.tcp_statistics, field)
 #define TCP_INC_STATS_BH(net, field)	SNMP_INC_STATS_BH((net)->mib.tcp_statistics, field)
@@ -577,6 +578,16 @@ static inline int tcp_bound_to_half_wnd(struct tcp_sock *tp, int pktsize)
 
 /* tcp.c */
 void tcp_get_info(struct sock *, struct tcp_info *);
+
+/* Routines required by Tempesta FW. */
+void tcp_cleanup_rbuf(struct sock *sk, int copied);
+extern void tcp_push(struct sock *sk, int flags, int mss_now, int nonagle,
+		     int size_goal);
+extern int tcp_send_mss(struct sock *sk, int *size_goal, int flags);
+extern void tcp_mark_push(struct tcp_sock *tp, struct sk_buff *skb);
+extern void tcp_init_nondata_skb(struct sk_buff *skb, u32 seq, u8 flags);
+extern void tcp_queue_skb(struct sock *sk, struct sk_buff *skb);
+extern int tcp_close_state(struct sock *sk);
 
 /* Read 'sendfile()'-style from a TCP socket */
 typedef int (*sk_read_actor_t)(read_descriptor_t *, struct sk_buff *,
