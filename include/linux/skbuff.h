@@ -1564,7 +1564,11 @@ static inline struct sk_buff *__skb_dequeue_tail(struct sk_buff_head *list)
 
 static inline bool skb_is_nonlinear(const struct sk_buff *skb)
 {
+#ifdef CONFIG_SECURITY_TEMPESTA
 	return skb->tail_lock || skb->data_len;
+#else
+	return skb->data_len;
+#endif
 }
 
 static inline unsigned int skb_headlen(const struct sk_buff *skb)
@@ -1750,6 +1754,7 @@ static inline unsigned int skb_headroom(const struct sk_buff *skb)
 	return skb->data - skb->head;
 }
 
+#ifdef CONFIG_SECURITY_TEMPESTA
 /**
  *	skb_tailroom_locked - bytes at buffer end
  *	@skb: buffer to check
@@ -1761,6 +1766,7 @@ static inline int skb_tailroom_locked(const struct sk_buff *skb)
 {
 	return skb->tail_lock ? 0 : skb->end - skb->tail;
 }
+#endif
 
 /**
  *	skb_tailroom - bytes at buffer end
@@ -3476,6 +3482,7 @@ static inline unsigned int skb_gso_network_seglen(const struct sk_buff *skb)
 	return hdr_len + skb_gso_transport_seglen(skb);
 }
 
+#ifdef CONFIG_SECURITY_TEMPESTA
 /*
  * ------------------------------------------------------------------------
  * 		Tempesta FW
@@ -3497,6 +3504,6 @@ do {									\
 	TFW_SKB_CB(skb)->prev = NULL;					\
 	TFW_SKB_CB(skb)->next = NULL;					\
 } while (0)
-
+#endif  /* CONFIG_SECURITY_TEMPESTA */
 #endif	/* __KERNEL__ */
 #endif	/* _LINUX_SKBUFF_H */

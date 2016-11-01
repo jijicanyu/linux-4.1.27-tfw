@@ -382,7 +382,6 @@ struct sk_buff *__alloc_skb(unsigned int size, gfp_t gfp_mask,
 			    int flags, int node)
 {
 	struct kmem_cache *cache;
-	struct skb_shared_info *shinfo;
 	struct sk_buff *skb;
 	u8 *data;
 	bool pfmemalloc;
@@ -1000,8 +999,12 @@ static void __copy_skb_header(struct sk_buff *new, const struct sk_buff *old)
 	new->tstamp		= old->tstamp;
 	/* We do not copy old->sk */
 	new->dev		= old->dev;
+#ifdef CONFIG_SECURITY_TEMPESTA
 	memcpy(new->cb, old->cb, sizeof(old->cb) - sizeof(SsSkbCb));
 	TFW_SKB_CB_INIT(new);
+#else
+	memcpy(new->cb, old->cb, sizeof(old->cb));
+#endif
 	skb_dst_copy(new, old);
 #ifdef CONFIG_XFRM
 	new->sp			= secpath_get(old->sp);
@@ -1561,7 +1564,11 @@ int skb_pad(struct sk_buff *skb, int pad)
 		return 0;
 	}
 
+#ifdef CONFIG_SECURITY_TEMPESTA
 	ntail = skb->data_len + pad - skb_tailroom_locked(skb);
+#else
+	ntail = skb->data_len + pad - (skb->end - skb->tail);
+#endif
 	if (likely(skb_cloned(skb) || ntail > 0)) {
 		err = pskb_expand_head(skb, 0, ntail, GFP_ATOMIC);
 		if (unlikely(err))
@@ -1796,7 +1803,13 @@ unsigned char *__pskb_pull_tail(struct sk_buff *skb, int delta)
 	 * plus 128 bytes for future expansions. If we have enough
 	 * room at tail, reallocate without expansion only if skb is cloned.
 	 */
-	int i, k, eat = delta - skb_tailroom_locked(skb);
+	int i, k, eat;
+
+#ifdef CONFIG_SECURITY_TEMPESTA
+	eat = delta - skb_tailroom_locked(skb);
+#else
+	eat = (skb->tail + delta) - skb->end;
+#endif
 
 	if (eat > 0 || skb_cloned(skb)) {
 		if (pskb_expand_head(skb, 0, eat > 0 ? eat + 128 : 0,
