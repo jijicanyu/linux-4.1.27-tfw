@@ -35,11 +35,21 @@ extern bool irq_fpu_usable(void);
  * All other cases use kernel_fpu_begin/end() which disable preemption
  * during kernel FPU usage.
  */
+#ifdef CONFIG_SECURITY_TEMPESTA
+extern void __kernel_fpu_begin_bh(void);
+extern void __kernel_fpu_end_bh(void);
+#endif
 extern void __kernel_fpu_begin(void);
 extern void __kernel_fpu_end(void);
 
+/*
+ * It's unknown in which context the two functions below will be called.
+ * However, it's known that SoftIRQ uses FPU. Both SoftIRQs and the task
+ * preemption need to be disabled.
+ */
 static inline void kernel_fpu_begin(void)
 {
+	local_bh_disable();
 	preempt_disable();
 	WARN_ON_ONCE(!irq_fpu_usable());
 	__kernel_fpu_begin();
@@ -49,6 +59,7 @@ static inline void kernel_fpu_end(void)
 {
 	__kernel_fpu_end();
 	preempt_enable();
+	local_bh_enable();
 }
 
 /* Must be called with preempt disabled */

@@ -74,26 +74,6 @@ static inline void stack_overflow_check(struct pt_regs *regs)
 #endif
 }
 
-#ifdef CONFIG_SECURITY_TEMPESTA
-/* Tempesta supports x86-64 only. */
-#include <asm/i387.h>
-
-void
-__tempesta_do_softirq_fpusafe(void)
-{
-	/*
-	 * Switch FPU context once per budget packets to let Tempesta
-	 * run many vector operations w/o costly FPU switches.
-	 * Eager FPU must be enabled.
-	 */
-	kernel_fpu_begin();
-
-	__do_softirq();
-
-	kernel_fpu_end();
-}
-#endif
-
 bool handle_irq(unsigned irq, struct pt_regs *regs)
 {
 	struct irq_desc *desc;
